@@ -17,7 +17,7 @@ export class News {
   @Column({ nullable: true })
   content: string;
 
-  @Column()
+  @Column({ nullable: true })
   category: string;
 
   @Column({ type: 'date' })
