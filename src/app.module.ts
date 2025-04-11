@@ -26,7 +26,6 @@ import { NewsModule } from './news/news.module';
     ScheduleModule.forRoot(),
     NewsModule,
   ],
-  providers: [
-  ],
+  providers: [],
 })
-export class AppModule { }
+export class AppModule {}
