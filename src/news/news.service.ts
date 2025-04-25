@@ -80,6 +80,15 @@ export class NewsService {
                 ...item,
                 content: newsContent,
               });
+
+              await axios.post(
+                `${process.env.TELEGRAM_BOT_URL}/telegram/news`,
+                {
+                  title: news.title,
+                  content: news.content,
+                  link: news.link,
+                },
+              );
             } catch (saveError: any) {
               if (saveError?.driverError?.code !== '23505') {
                 throw saveError;
