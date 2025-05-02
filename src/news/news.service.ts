@@ -78,7 +78,7 @@ export class NewsService {
   async checkNews() {
     try {
       const response = await axios.get(
-        'https://nerehta-adm.ru/news/index/MNews_page/2',
+        'https://nerehta-adm.ru/news/',
       );
       const $ = cheerio.load(response.data);
 
