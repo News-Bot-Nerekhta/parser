@@ -9,6 +9,9 @@ import { News } from './entities/news.entity';
 @Injectable()
 export class NewsService {
   private readonly logger = new Logger(NewsService.name);
+  private readonly SUMMARY_API_URL = process.env.SUMMARY_API_URL;
+  private readonly MAX_TELEGRAM_LENGTH = 1024;
+
   private readonly categories = {
     power: 'Отключение электроснабжения',
     water: 'Отключение воды',
@@ -19,7 +22,49 @@ export class NewsService {
   constructor(
     @InjectRepository(News)
     private newsRepository: Repository<News>,
-  ) {}
+  ) {
+    if (!this.SUMMARY_API_URL) {
+      this.logger.warn('SUMMARY_API_URL не задан в конфигурации');
+    }
+  }
+
+  private async getShortenedText(
+    text: string,
+  ): Promise<{ text: string; wasShortened: boolean }> {
+    if (text.length <= this.MAX_TELEGRAM_LENGTH || !this.SUMMARY_API_URL) {
+      return {
+        text:
+          text.length > this.MAX_TELEGRAM_LENGTH
+            ? text.substring(0, this.MAX_TELEGRAM_LENGTH - 3) + '...'
+            : text,
+        wasShortened: false,
+      };
+    }
+
+    try {
+      const response = await axios.post(this.SUMMARY_API_URL, {
+        text: text,
+      });
+
+      if (response.data && response.data.summary) {
+        return {
+          text: response.data.summary,
+          wasShortened: true,
+        };
+      }
+      console.log(response);
+      return {
+        text: text,
+        wasShortened: false,
+      };
+    } catch (error) {
+      this.logger.error('Ошибка при сокращении текста:', error);
+      return {
+        text: text,
+        wasShortened: false,
+      };
+    }
+  }
 
   private determineCategory(title: string): string {
     title = title.toLowerCase();
@@ -32,7 +77,9 @@ export class NewsService {
   @Cron('*/1 * * * *')
   async checkNews() {
     try {
-      const response = await axios.get('https://nerehta-adm.ru/news');
+      const response = await axios.get(
+        'https://nerehta-adm.ru/news/index/MNews_page/2',
+      );
       const $ = cheerio.load(response.data);
 
       const newsItems = $('.list-item')
@@ -96,15 +143,25 @@ export class NewsService {
                 category: this.determineCategory(item.title),
               });
 
+              const { text: shortenedContent, wasShortened } =
+                await this.getShortenedText(mainContent);
+
+              const aiNote = wasShortened
+                ? '\n\n💡 Текст сокращён нейросетью'
+                : '';
+              const message = `🔔 Новая новость!\n\n${item.title}\n\n${shortenedContent}${aiNote}\n\n📎 Новость на оф.сайте: ${item.link}`;
+
+              this.logger.log(
+                `Отправка новости "${item.title}" подписчикам. Категория: ${news.category}`,
+              );
+
               await axios.post(
                 `${process.env.TELEGRAM_BOT_URL}/telegram/news`,
                 {
-                  title: news.title,
-                  content: news.content,
+                  content: message,
                   category: news.category,
                 },
               );
-              console.log(news.category);
             } catch (saveError: any) {
               if (saveError?.driverError?.code !== '23505') {
                 throw saveError;
