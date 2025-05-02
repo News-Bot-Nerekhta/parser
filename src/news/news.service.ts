@@ -9,11 +9,25 @@ import { News } from './entities/news.entity';
 @Injectable()
 export class NewsService {
   private readonly logger = new Logger(NewsService.name);
+  private readonly categories = {
+    power: 'Отключение электроснабжения',
+    water: 'Отключение воды',
+    other: 'Другие новости',
+    all: 'Все новости',
+  };
 
   constructor(
     @InjectRepository(News)
     private newsRepository: Repository<News>,
   ) {}
+
+  private determineCategory(title: string): string {
+    title = title.toLowerCase();
+    if (title.includes('электроснабжен') || title.includes('электроэнерги'))
+      return 'power';
+    if (title.includes('вода') || title.includes('водоснабжен')) return 'water';
+    return 'other';
+  }
 
   @Cron('*/1 * * * *')
   async checkNews() {
@@ -79,6 +93,7 @@ export class NewsService {
               const news = await this.newsRepository.save({
                 ...item,
                 content: newsContent,
+                category: this.determineCategory(item.title),
               });
 
               await axios.post(
