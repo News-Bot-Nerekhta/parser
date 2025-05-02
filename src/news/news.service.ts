@@ -101,9 +101,10 @@ export class NewsService {
                 {
                   title: news.title,
                   content: news.content,
-                  link: news.link,
+                  category: news.category,
                 },
               );
+              console.log(news.category);
             } catch (saveError: any) {
               if (saveError?.driverError?.code !== '23505') {
                 throw saveError;
