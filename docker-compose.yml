@@ -4,7 +4,7 @@ services:
   parser:
     build: .
     ports:
-      - "3000:3000"
+      - "${PARSER_PORT}:3000"
     environment:
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
