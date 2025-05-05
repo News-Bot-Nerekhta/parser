@@ -12,6 +12,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_DATABASE=${DB_DATABASE}
       - SUMMARY_API_URL=${SUMMARY_API_URL}
+      - TELEGRAM_BOT_URL=${TELEGRAM_BOT_URL}
     networks:
       - app-network
     depends_on:
