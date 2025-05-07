@@ -149,7 +149,7 @@ export class NewsService {
               const aiNote = wasShortened
                 ? '\n\n💡 Текст сокращён нейросетью'
                 : '';
-              const message = `🔔 Новая новость!\n\n${item.title}\n\n${shortenedContent}${aiNote}`;
+              const message = `🔔 Новая новость!\n\n${item.title}\n\n${shortenedContent}${aiNote}\n\n📎 Новость на оф.сайте: ${item.link}`;
 
               this.logger.log(
                 `Отправка новости "${item.title}" подписчикам. Категория: ${news.category}`,
@@ -247,7 +247,7 @@ export class NewsService {
           ? '\n\n📷 Изображения:\n' + imageLinks.join('\n')
           : '';
 
-      return uniqueLines + imagesSection + `\n\n📎 Новость на оф.сайте: ${url}`;
+      return uniqueLines + imagesSection;
     } catch (error) {
       this.logger.error(
         `Ошибка при получении содержания новости: ${url}`,
