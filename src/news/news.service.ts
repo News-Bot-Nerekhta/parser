@@ -77,9 +77,7 @@ export class NewsService {
   @Cron('*/1 * * * *')
   async checkNews() {
     try {
-      const response = await axios.get(
-        'https://nerehta-adm.ru/news/',
-      );
+      const response = await axios.get('https://nerehta-adm.ru/news');
       const $ = cheerio.load(response.data);
 
       const newsItems = $('.list-item')
@@ -126,16 +124,6 @@ export class NewsService {
           if (!exists && item.link) {
             const newsContent = await this.getNewsContent(item.link);
 
-            const [mainContent, ...sections] = newsContent.split(
-              '\n\n📷 Изображения:\n',
-            );
-            const imageUrls =
-              sections.length > 0
-                ? sections[0]
-                    .split('\n')
-                    .filter((url) => url.startsWith('http'))
-                : [];
-
             try {
               const news = await this.newsRepository.save({
                 ...item,
@@ -144,7 +132,7 @@ export class NewsService {
               });
 
               const { text: shortenedContent, wasShortened } =
-                await this.getShortenedText(mainContent);
+                await this.getShortenedText(newsContent);
 
               const aiNote = wasShortened
                 ? '\n\n💡 Текст сокращён нейросетью'
@@ -246,7 +234,6 @@ export class NewsService {
         imageLinks.length > 0
           ? '\n\n📷 Изображения:\n' + imageLinks.join('\n')
           : '';
-
       return uniqueLines + imagesSection;
     } catch (error) {
       this.logger.error(
