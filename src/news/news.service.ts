@@ -149,7 +149,7 @@ export class NewsService {
               const aiNote = wasShortened
                 ? '\n\n💡 Текст сокращён нейросетью'
                 : '';
-              const message = `🔔 Новая новость!\n\n${item.title}\n\n${shortenedContent}${aiNote}\n\n📎 Новость на оф.сайте: ${item.link}`;
+              const message = `🔔 Новая новость!\n\n${item.title}\n\n${shortenedContent}${aiNote}`;
 
               this.logger.log(
                 `Отправка новости "${item.title}" подписчикам. Категория: ${news.category}`,
